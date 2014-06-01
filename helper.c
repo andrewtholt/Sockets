@@ -24,6 +24,7 @@ Programming", W Richard Stevens (Prentice Hall).
 ssize_t Readline(int sockd, void *vptr, size_t maxlen) {
     ssize_t         n, rc;
     char            c, *buffer;
+    int count = 0;
 
     buffer = vptr;
 
@@ -39,6 +40,7 @@ ssize_t Readline(int sockd, void *vptr, size_t maxlen) {
             } else {
                 printf(":.: <%02x>", c);
             }
+            count++;
             if (c == '\n') {
                 printf("\n");
                 break;
@@ -72,6 +74,7 @@ ssize_t Writeline(int sockd, const void *vptr, size_t n) {
     buffer = vptr;
     nleft = n;
 
+    printf("Writeline\n");
     while (nleft > 0) {
         if ((nwritten = write(sockd, buffer, nleft)) <= 0) {
             if (errno == EINTR) {

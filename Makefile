@@ -1,6 +1,9 @@
-BINS=modbusd echoserv
+BINS=modbusd echoserv client
 
 all:	$(BINS)
+
+client:	client.c
+	$(CC) -g $? -o $@
 
 modbusd:	modbusd.c
 	$(CC) -g $? -o $@

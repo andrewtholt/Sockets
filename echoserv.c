@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
     tv.tv_sec = 1;
-    tv.tv_usec=1;
+    tv.tv_usec= 0;
 
     rc=setsockopt(list_s, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(struct timeval));
     printf("setsocketopt=%d\n",rc);
@@ -132,6 +132,7 @@ int main(int argc, char *argv[]) {
             if ( rc == 0 ) {
                 runFlag = 0;
             }
+            sleep(1);
             if( rc > 0) {
                 Writeline(conn_s, buffer, strlen(buffer));
             }
