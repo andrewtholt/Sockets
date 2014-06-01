@@ -19,7 +19,7 @@ Simple TCP/IP echo server.
 
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <string.h>
 
 /*  Global constants  */
 
