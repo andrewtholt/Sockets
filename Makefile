@@ -1,4 +1,4 @@
-BINS=modbusd echoserv client
+BINS=modbusd echoserv client httpd
 
 all:	$(BINS)
 
@@ -19,3 +19,9 @@ helper.o:	helper.c
 
 clean:
 	rm -f $(BINS) *.o cscope.out
+
+httpd:	httpd.o helper.o
+	$(CC) -g httpd.o helper.o -o httpd
+
+httpd.o:	httpd.c
+	$(CC) -c -g $? -o $@
