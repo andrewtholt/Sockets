@@ -1,5 +1,4 @@
 /*
-
    HELPER.C
    ========
    (c) Paul Griffiths, 1999
@@ -20,9 +19,6 @@ Programming", W Richard Stevens (Prentice Hall).
 #include <stdio.h>
 #include <string.h>
 
-
-
-
 /* Read a line from a socket  */
 
 ssize_t Readline(int sockd, void *vptr, size_t maxlen) {
@@ -32,18 +28,12 @@ ssize_t Readline(int sockd, void *vptr, size_t maxlen) {
 
     buffer = vptr;
 
-    printf("Readline.\n");
+//    printf("Readline.\n");
     for (n = 1; n < maxlen; n++) {
 
         if((rc=recv(sockd, &c, 1, 0)) == 1)  {
-            //            printf("A\n");
             *buffer++ = c;
 
-            if( c >= 0x20 && c <=0x7f) {
-                printf(":%c: <%02x>",c, c);
-            } else {
-                printf(":.: <%02x>", c);
-            }
             count++;
             if (c == '\n') {
                 printf("\n");
@@ -78,7 +68,7 @@ ssize_t Writeline(int sockd, const void *vptr, size_t n) {
     buffer = vptr;
     nleft = n;
 
-    printf("Writeline\n");
+//    printf("Writeline\n");
     while (nleft > 0) {
         if ((nwritten = write(sockd, buffer, nleft)) <= 0) {
             if (errno == EINTR) {

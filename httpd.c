@@ -34,10 +34,16 @@ ssize_t WriteFile(int sockd, char *file) {
 
     op=fopen(file,"r");
     if( (FILE *)NULL != op ) {
+        strcpy(buffer,"HTTP/1.1 200 OK\n");
+
+        Writeline(sockd,buffer,strlen(buffer));
         while( !feof(op) ) {
             rc=fgets(buffer,1024,op);
             Writeline(sockd,buffer,strlen(buffer));
         }
+    } else {
+        strcpy(buffer,"HTTP/1.0 404 Not Found\n");
+        Writeline(sockd,buffer,strlen(buffer));
     }
 }
 
