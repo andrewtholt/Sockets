@@ -13,6 +13,7 @@
 
 */
 
+// #define DEBUG 1
 
 #ifndef PG_SOCK_HELP
 #define PG_SOCK_HELP

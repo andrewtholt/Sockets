@@ -1,13 +1,14 @@
 /*
- *
- *   ECHOSERV.C
- *   ==========
- *   (c) Paul Griffiths, 1999
- * Email: mail@paulgriffiths.net
- *
- * Simple TCP/IP echo server.
- *
- */
+
+   ECHOSERV.C
+   ==========
+   (c) Paul Griffiths, 1999
+Email: mail@paulgriffiths.net
+
+Simple TCP/IP echo server.
+
+*/
+
 
 #include <sys/socket.h>       /*  socket definitions        */
 #include <sys/types.h>        /*  socket types              */
@@ -25,32 +26,24 @@
 #define ECHO_PORT          (2002)
 #define MAX_LINE           (1000)
 
-// ssize_t Writeline(int sockd, const void *vptr, size_t n) 
+char *hello = "hello";
 
-int WriteFile(int sockd, char *file) {
-    FILE *op;
-    char buffer[1024];
-    char *rc;
+int processLine(int sockd, char *ptr, int len) {
+    char *tok;
+    char *path;
+    char *protocol;
 
-    int htmlStatus=200; // Success
+    int status = 200; // all's well
 
-    op=fopen(file,"r");
-    if( (FILE *)NULL != op ) {
-        strcpy(buffer,"HTTP/1.1 200 OK\n");
+    tok = (char *)strtok( ptr, " ");
 
-        Writeline(sockd,buffer,strlen(buffer));
-        while( !feof(op) ) {
-            rc=fgets(buffer,1024,op);
-            Writeline(sockd,buffer,strlen(buffer));
-        }
-        htmlStatus = 200;
-    } else {
-        htmlStatus = 404;
+    if( !strcmp(tok,"GET")) {
+        path     = (char *)strtok(NULL," ");
+        protocol = (char *)strtok(NULL," \r\n");
     }
 
-    return( htmlStatus);
+    return( status );
 }
-
 
 int main(int argc, char *argv[]) {
     int       list_s;                /*  listening socket          */
@@ -63,10 +56,9 @@ int main(int argc, char *argv[]) {
     int rc;
     int count=0;
     int runFlag = 1;
-    char *ptr;
 
     /*  Get port number from the command line, and
-     *        set to default port if no arguments were supplied  */
+        set to default port if no arguments were supplied  */
 
     if ( argc == 2 ) {
         port = strtol(argv[1], &endptr, 0);
@@ -91,8 +83,9 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+
     /*  Set all bytes in socket address structure to
-     *        zero, and fill in the relevant data members   */
+        zero, and fill in the relevant data members   */
 
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family      = AF_INET;
@@ -101,7 +94,7 @@ int main(int argc, char *argv[]) {
 
 
     /*  Bind our socket addresss to the 
-     *        listening socket, and call listen()  */
+        listening socket, and call listen()  */
 
     if ( bind(list_s, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0 ) {
         fprintf(stderr, "ECHOSERV: Error calling bind()\n");
@@ -119,7 +112,7 @@ int main(int argc, char *argv[]) {
     printf("setsocketopt=%d\n",rc);
 
     /*  Enter an infinite loop to respond
-     *        to client requests and echo input  */
+        to client requests and echo input  */
 
     while ( 1 ) {
 
@@ -135,60 +128,26 @@ int main(int argc, char *argv[]) {
         }
         while( conn_s == -1);
         /*  Retrieve an input line from the connected socket
-         *            then simply write it back to the same socket.     */
+            then simply write it back to the same socket.     */
 
         runFlag = 1;
         while(runFlag) {
             count++;
 
-            bzero(buffer,MAX_LINE);
             rc=Readline(conn_s, buffer, MAX_LINE-1);
             printf("count=%d\trc=%d\n",count,rc);
 
-            ptr=strtok(buffer," ");
-
-            if( strlen(buffer) > 0) {
-                if( (char *)NULL != ptr) {
-                    char *fileName ;
-                    char *proto ;
-                    printf("Request=>%s<\n", ptr);
-
-                    if(!strcmp(ptr,"GET")) {
-                        char file[1024];
-                        fileName = (char *)strtok(NULL," ");
-                        proto    = (char *)strtok(NULL," ");
-
-                        printf("\t>%s<\n", fileName);
-                        printf("\t>%s<\n", proto);
-
-                        if( !strcmp(fileName,"/")) {
-                            strcpy(file,"/var/www/httpd/index.html");
-                        } else {
-                            sprintf(file,"/var/www/httpd%s",fileName);
-                        }
-                        printf("\t>%s<\n", file);
-
-                        switch(WriteFile(conn_s, file)) {
-                            case 200: // OK
-                                break;
-                            case 404: // File ? What file
-                                strcpy(buffer,"HTTP/1.0 404 Not Found\n");
-                                Writeline(conn_s,buffer,strlen(buffer));
-                                break;
-                        }
-                    }
-                }
-
-            }
             if ( rc == 0 ) {
                 runFlag = 0;
             }
-            /*
-             *            sleep(1);
-             *            if( rc > 0) {
-             *                Writeline(conn_s, buffer, strlen(buffer));
-        }
-        */
+            if( rc > 0) {
+                if( strlen(buffer ) > 0) {
+                processLine(conn_s, buffer, strlen(buffer));
+//                Writeline(conn_s, buffer, strlen(buffer));
+
+                printf("-->%s<\n", buffer);
+                }
+            }
         }
 
         /*  Close the connected socket  */

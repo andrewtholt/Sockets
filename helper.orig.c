@@ -1,5 +1,4 @@
 /*
-
    HELPER.C
    ========
    (c) Paul Griffiths, 1999
@@ -20,9 +19,6 @@ Programming", W Richard Stevens (Prentice Hall).
 #include <stdio.h>
 #include <string.h>
 
-
-
-
 /* Read a line from a socket  */
 
 ssize_t Readline(int sockd, void *vptr, size_t maxlen) {
@@ -36,21 +32,23 @@ ssize_t Readline(int sockd, void *vptr, size_t maxlen) {
     for (n = 1; n < maxlen; n++) {
 
         if((rc=recv(sockd, &c, 1, 0)) == 1)  {
-            //            printf("A\n");
             *buffer++ = c;
-            count++;
 
+<<<<<<< Updated upstream
+=======
 #ifdef DEBUG
             if( c >= 0x20 && c <=0x7f) {
                 printf(":%c: <%02x>",c, c);
             } else {
                 printf(":.: <%02x>", c);
             }
-#endif
+>>>>>>> Stashed changes
+            count++;
             if (c == '\n') {
-//                printf("\n");
+                printf("\n");
                 break;
             }
+#endif
         } else if (rc == 0) {
             printf("B\n");
             if (n == 1)
@@ -61,8 +59,6 @@ ssize_t Readline(int sockd, void *vptr, size_t maxlen) {
             // printf("C\n");
             if (errno == EINTR)
                 continue;
-            if( errno == EAGAIN)
-                break;
             return -1;
         }
     }
@@ -82,7 +78,7 @@ ssize_t Writeline(int sockd, const void *vptr, size_t n) {
     buffer = vptr;
     nleft = n;
 
-    printf("Writeline\n");
+//    printf("Writeline\n");
     while (nleft > 0) {
         if ((nwritten = write(sockd, buffer, nleft)) <= 0) {
             if (errno == EINTR) {

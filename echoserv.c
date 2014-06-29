@@ -23,7 +23,7 @@ Simple TCP/IP echo server.
 
 /*  Global constants  */
 
-#define ECHO_PORT          (2002)
+#define ECHO_PORT          (8080)
 #define MAX_LINE           (1000)
 
 
@@ -87,8 +87,8 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "ECHOSERV: Error calling listen()\n");
         exit(EXIT_FAILURE);
     }
-    tv.tv_sec = 1;
-    tv.tv_usec= 0;
+    tv.tv_sec = 0;
+    tv.tv_usec= 100;
 
     rc=setsockopt(list_s, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(struct timeval));
     printf("setsocketopt=%d\n",rc);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
             if ( rc == 0 ) {
                 runFlag = 0;
             }
-            sleep(1);
+//            sleep(1);
             if( rc > 0) {
                 Writeline(conn_s, buffer, strlen(buffer));
             }
