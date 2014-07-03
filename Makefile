@@ -1,4 +1,4 @@
-BINS=modbusd echoserv client httpd httpd_1
+BINS=modbusd echoserv client httpd httpd_1 httpd_2
 
 all:	$(BINS)
 
@@ -29,5 +29,11 @@ httpd_1:	httpd_1.o helper.o
 httpd_1.o:	httpd_1.c
 	$(CC) -c -g $? -o $@
 
+httpd_2:	httpd_2.o 
+	$(CC) -g httpd_2.o -o httpd_2
+
+httpd_2.o:	httpd_2.c
+	$(CC) -c -g $? -o $@
+	
 httpd.o:	httpd.c
 	$(CC) -c -g $? -o $@
