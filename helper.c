@@ -82,7 +82,7 @@ ssize_t Writeline(int sockd, const void *vptr, size_t n) {
     buffer = vptr;
     nleft = n;
 
-    printf("Writeline\n");
+//    printf("Writeline\n");
     while (nleft > 0) {
         if ((nwritten = write(sockd, buffer, nleft)) <= 0) {
             if (errno == EINTR) {

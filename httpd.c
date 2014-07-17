@@ -43,6 +43,8 @@ int WriteFile(int sockd, char *file) {
             rc=fgets(buffer,1024,op);
             Writeline(sockd,buffer,strlen(buffer));
         }
+        strcpy(buffer,"\n\n");
+        Writeline(sockd,buffer,strlen(buffer));
         htmlStatus = 200;
     } else {
         htmlStatus = 404;
@@ -64,6 +66,7 @@ int main(int argc, char *argv[]) {
     int count=0;
     int runFlag = 1;
     char *ptr;
+    int len=0;
 
     /*  Get port number from the command line, and
      *        set to default port if no arguments were supplied  */
@@ -129,7 +132,7 @@ int main(int argc, char *argv[]) {
             conn_s = accept(list_s, NULL, NULL);
 
             if (conn_s == -1) {
-                perror("accept");
+//                perror("accept");
                 sleep(1);
             }
         }
@@ -143,11 +146,13 @@ int main(int argc, char *argv[]) {
 
             bzero(buffer,MAX_LINE);
             rc=Readline(conn_s, buffer, MAX_LINE-1);
-            printf("count=%d\trc=%d\n",count,rc);
+            len=strlen(buffer);
 
-            ptr=strtok(buffer," ");
+            printf("len=%d\n",len);
 
-            if( strlen(buffer) > 0) {
+            ptr=strtok(buffer," \r\n");
+
+            if( (strlen(buffer) > 0)) {
                 if( (char *)NULL != ptr) {
                     char *fileName ;
                     char *proto ;
@@ -168,15 +173,10 @@ int main(int argc, char *argv[]) {
                         }
                         printf("\t>%s<\n", file);
 
-                        switch(WriteFile(conn_s, file)) {
-                            case 200: // OK
-                                break;
-                            case 404: // File ? What file
-                                strcpy(buffer,"HTTP/1.0 404 Not Found\n");
-                                Writeline(conn_s,buffer,strlen(buffer));
-                                break;
-                        }
+                        WriteFile(conn_s, file);
                     }
+                } else {
+                    runFlag=0;
                 }
 
             }
