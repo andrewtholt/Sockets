@@ -27,6 +27,17 @@ static void wait_for_child(int sig) {
 
 void handle(int newsock) {
     /* recv(), send(), close() */
+
+    /*
+     * Get name of client (this will be used to create the spread user name).
+     *
+     * If unknown create an entry in db.
+     * If known mark as connected.
+     *
+     * check for any messages TO the client and deliver them.
+     *
+     * wait for destination and message.
+     */
 }
 
 int main(void) {
