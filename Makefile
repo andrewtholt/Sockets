@@ -1,4 +1,4 @@
-BINS=modbusd echoserv client httpd httpd_1 httpd_2
+BINS=forked-server modbusd echoserv client httpd httpd_1 httpd_2
 
 all:	$(BINS)
 
@@ -10,6 +10,9 @@ modbusd:	modbusd.c
 
 echoserv:	echoserv.o helper.o
 	$(CC) -g echoserv.o helper.o -o echoserv
+
+forked-server:	forked-server.c
+	$(CC) -g forked-server.c -o forked-server
 
 echoserv.o:	echoserv.c
 	$(CC) -c -g $? -o $@
