@@ -21,6 +21,9 @@
 static void wait_for_child(int sig) {
     while (waitpid(-1, NULL, WNOHANG) > 0);
 }
+/*
+ * ATH:  This is where the real work is done.
+ */
 
 void handle(int newsock) {
     /* recv(), send(), close() */
