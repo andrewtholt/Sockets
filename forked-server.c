@@ -17,18 +17,16 @@
 #define BACKLOG     10  /* Passed to listen() */
 
 /* Signal handler to reap zombie processes */
-static void wait_for_child(int sig)
-{
+
+static void wait_for_child(int sig) {
     while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
-void handle(int newsock)
-{
+void handle(int newsock) {
     /* recv(), send(), close() */
 }
 
-int main(void)
-{
+int main(void) {
     int sock;
     struct sigaction sa;
     struct addrinfo hints, *res;
@@ -38,6 +36,7 @@ int main(void)
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
+
     if (getaddrinfo(NULL, PORT, &hints, &res) != 0) {
         perror("getaddrinfo");
         return 1;
@@ -45,24 +44,28 @@ int main(void)
 
     /* Create the socket */
     sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
     if (sock == -1) {
         perror("socket");
         return 1;
     }
 
     /* Enable the socket to reuse the address */
+
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(int)) == -1) {
         perror("setsockopt");
         return 1;
     }
 
     /* Bind to the address */
+
     if (bind(sock, res->ai_addr, res->ai_addrlen) == -1) {
         perror("bind");
         return 1;
     }
 
     /* Listen */
+
     if (listen(sock, BACKLOG) == -1) {
         perror("listen");
         return 1;
