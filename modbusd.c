@@ -76,22 +76,19 @@ int main(void)
     stSockAddr.sin_addr.s_addr = INADDR_ANY;
     
 
-    if(-1 == bind(SocketFD,(struct sockaddr *)&stSockAddr, sizeof(stSockAddr)))
-    {
+    if(-1 == bind(SocketFD,(struct sockaddr *)&stSockAddr, sizeof(stSockAddr))) {
         perror("error bind failed");
         close(SocketFD);
         exit(EXIT_FAILURE);
     }
     
-    if(-1 == listen(SocketFD, 10))
-    {
+    if(-1 == listen(SocketFD, 10)) {
         perror("error listen failed");
         close(SocketFD);
         exit(EXIT_FAILURE);
     }
     
-    for(;;)
-    {
+    for(;;) {
         printf("Waiting on accept\n");
         int ConnectFD = accept(SocketFD, NULL, NULL);
         setnonblocking(ConnectFD);
@@ -99,8 +96,7 @@ int main(void)
         printf("Done waiting\n");
         
         
-        if(0 > ConnectFD)
-        {
+        if(0 > ConnectFD) {
             perror("error accept failed");
             close(SocketFD);
             exit(EXIT_FAILURE);
@@ -108,8 +104,6 @@ int main(void)
         
         /* perform read write operations ... 
          read(ConnectFD,buff,size)*/
-        
-        
         
         while( exitFlag == 0) {
             printf("Input ....\n");
@@ -139,8 +133,8 @@ int main(void)
             
             if( n == 0 ) {
                 printf("Client dropped connection\n");
-                if (-1 == shutdown(ConnectFD, SHUT_RDWR))
-                {
+
+                if (-1 == shutdown(ConnectFD, SHUT_RDWR)) {
                     perror("can not shutdown socket");
                     close(ConnectFD);
                     exit(EXIT_FAILURE);
