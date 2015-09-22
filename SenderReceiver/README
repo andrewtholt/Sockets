@@ -1,0 +1,12 @@
+
+Two programs, 
+remote - Socket to connect to.
+local  - connects to socket.
+
+Without options local sends to remote.
+
+remote -s - Socket to conenct to.
+local -s  - Connects to socket.
+
+Remote sends to local, i.e. inversion of control.
+
