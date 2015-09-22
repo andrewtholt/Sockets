@@ -29,5 +29,5 @@ httpd_1
 forked-server
 httpd_2
 Test
-receiver
-sender
+local
+remote

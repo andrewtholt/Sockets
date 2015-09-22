@@ -22,15 +22,19 @@ Simple TCP/IP echo server.
 
 /*  Global constants  */
 
-#define ECHO_PORT          (8080)
-#define MAX_LINE           (1000)
+#define MAX_LINE 1024
 #define LISTENQ        (1024)
 
 void usage() {
-    printf("Usage: receiver\n");
+    printf("Usage: remote\n");
     printf("\t-h\t\tHelp.\n");
+    printf("\t-v\t\tVerbose.\n");
     printf("\t-a <address>\tListen on address (not implemented).\n");
     printf("\t-p <port>\tHelp.\n");
+    printf("\t-m <message Q name>\tQueue name.\n");
+    printf("\n");
+    printf("\t-r\t\tReceiver(default).\n");
+    printf("\t-s\t\tSender.\n");
     printf("\n");
     exit(0);
 }
@@ -38,23 +42,28 @@ void usage() {
 int main(int argc, char *argv[]) {
     int       list_s;                /*  listening socket          */
     int       conn_s;                /*  connection socket         */
-    short int port;                  /*  port number               */
+    short int port=8888;                  /*  port number               */
     struct    sockaddr_in servaddr;  /*  socket address structure  */
     char      buffer[MAX_LINE];      /*  character buffer          */
     char     *endptr;                /*  for strtol()              */
     struct timeval tv;
     int rc;
-    int count=0;
     int runFlag = 1;
     int verbose=0;
     char address[32];
+    char queue[32];
     int i;
     int n;
     int incoming;
-
     int   opt;
+    uint8_t len;
 
-    while((opt = getopt(argc, argv,"ha:p:")) != -1) {
+    int sender=0;
+
+    strcpy(address,"127.0.0.1");
+    strcpy(queue,"/RX");
+
+    while((opt = getopt(argc, argv,"vha:p:m:sr")) != -1) {
         switch(opt) {
             case 'h':
                 usage();
@@ -65,14 +74,36 @@ int main(int argc, char *argv[]) {
             case 'p':
                 port=atoi( optarg );
                 break;
+            case 'm':
+                strncpy(queue,optarg,32);
+                break;
             case 'v':
                 verbose=-1;
+                break;
+            case 'r':
+                sender=0;
+                break;
+            case 's':
+                sender=1;
                 break;
             default:
                 usage();
                 break;
         }
     }   
+
+    if(verbose) {   
+        printf("Address :%s\n",address);
+        printf("Port    :%d\n",port);
+        printf("Queue   :%s\n",queue);
+
+        if(sender) {
+            printf("Sender\n");
+        } else {
+            printf("Receiver\n");
+        }
+        printf("\n");
+    }
 
     /*  Get port number from the command line, and
         set to default port if no arguments were supplied  */
@@ -129,43 +160,40 @@ int main(int argc, char *argv[]) {
 
         runFlag = 1;
 
-        count=0;
         incoming=0;
         while(runFlag) {
 
-            printf("Input ....\n");
-            errno = EAGAIN;
-            n = -1; 
-            while( (EAGAIN == errno) && (-1 == n) ) { 
-                usleep(10);
-                n=recv(conn_s,buffer,1,0);
-                if( count == 0) {
-                    incoming=buffer[0];
+            if(sender == 0) {
+                printf("Input ....\n");
+                errno = EAGAIN;
+                n = -1; 
+                while( (EAGAIN == errno) && (-1 == n) ) { 
+                    usleep(10);
+                    n=recv(conn_s,buffer,1,0);
+                        incoming=buffer[0];
                 }
+
+                if(verbose) {
+                    printf("%d bytes recieved ...\n",n);
+                    printf("... %d bytes expected\n",incoming);
+                }
+
+                if( incoming > 0 ) {
+                    n=recv(conn_s,buffer,incoming,0);
+
+                    if(n > 0) {
+                        mdump(buffer,16);
+                    }
+                }
+            } else {
             }
 
-            printf("%d bytes recieved\n",n);
 
-            if( (count == 0) && (incoming > 0) ) {
-                n=recv(conn_s,buffer,incoming,0);
-            }
-            count++;
-
-            mdump(buffer,16);
-
+            /*
             if ( rc == 0 ) {
                 runFlag = 0;
             }
-            //            sleep(1);
-            /*
-               if( rc > 0) {
-               Writeline(conn_s, buffer, strlen(buffer));
-               if (strlen(buffer) > 0) {
-               printf("buffer >%s<\n", buffer);
-               }
-               }
-               */
-            //            sleep(1);
+            */
         }
 
         /*  Close the connected socket  */

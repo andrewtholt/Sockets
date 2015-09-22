@@ -1,12 +1,12 @@
-BINS=sender receiver
+BINS=local remote
 
 all:	$(BINS)
 
-sender:	sender.c mdump.o
-	$(CC) -g $< mdump.o -o $@
+local:	local.c mdump.o
+	$(CC) -g $< mdump.o -lrt -o $@
 
-receiver:	receiver.c mdump.o
-	$(CC) -g $< mdump.o -o $@
+remote:	remote.c mdump.o
+	$(CC) -g $< mdump.o -lrt -o $@
 
 mdump.o:	mdump.c
 	$(CC) -c -g $? -o $@
