@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     int n;
     int incoming;
     int   opt;
-    uint8_t len;
+    int len;
     int oflag;
 
     char tmp[1024];
@@ -209,7 +209,8 @@ int main(int argc, char *argv[]) {
                     }
                 }
             } else {
-                len = mq_receive( msg, &tmp[0], sizeof(tmp), 0);
+//                len = mq_receive( msg, &tmp[0], sizeof(tmp), 0);
+                len = mq_receive( msg, &tmp[0], 1024, 0);
 
                 if( len < 0) {
                     perror("mq_receive");

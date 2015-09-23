@@ -110,6 +110,9 @@ int main(int argc , char *argv[]) {
         printf("\n");
 
         rc=mq_getattr(msg, &TX);
+        if (rc == 0) {
+            printf("mq_msgsize %d\n", TX.mq_msgsize);
+        }
     }
 
     if(sender) {
