@@ -1,4 +1,13 @@
 
 1. Robustness.  Handle disconnects better
 
+Remote.
+Only open message queue when somebody connects.
+Add switch to flush old messages on connect.
+
+Local
+Close message queue on remote disconnect
+Add switch to flush old messages on connect.
+Add switch to try n reconnects after disconnect.
+
 
