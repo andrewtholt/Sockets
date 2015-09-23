@@ -201,10 +201,10 @@ int main(int argc, char *argv[]) {
         runFlag = 1;
 
         incoming=0;
+        printf("Connected ....\n");
         while(runFlag) {
 
             if(sender == 0) {
-                printf("Input ....\n");
                 errno = EAGAIN;
                 n = -1; 
                 while( (EAGAIN == errno) && (-1 == n) ) { 
@@ -240,8 +240,10 @@ int main(int argc, char *argv[]) {
             message[0]=(uint8_t)len;
             mdump(tmp,32);
 
-            if( send(conn_s , message , len+1 , 0) < 0) {
+//            if( send(conn_s , message , len+1 , 0) < 0) {
+            if( send(conn_s , message , len+1 , MSG_NOSIGNAL) < 0) {
                 printf("Send Failed\n");
+                runFlag = 0;
             }
 
 
@@ -254,9 +256,11 @@ int main(int argc, char *argv[]) {
 
         /*  Close the connected socket  */
 
+
         if ( close(conn_s) < 0 ) {
             fprintf(stderr, "ECHOSERV: Error calling close()\n");
             exit(EXIT_FAILURE);
         }
+        printf("Disconnected\n");
     }
 }
