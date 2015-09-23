@@ -150,10 +150,19 @@ int main(int argc , char *argv[]) {
     TX.mq_maxmsg = MQ_DEF_MAXMSG;
     TX.mq_flags = 0;
 
-    msg = mq_open( queue, oflag, 0660, &TX );
+    msg = mq_open( queue, oflag, 0660,NULL);
 
     if( msg < 0) {
         perror("mq_open");
+        exit(-1);
+    }
+
+    mq_close(msg);
+
+    msg = mq_open( queue, oflag, 0660, &TX );
+
+    if( msg < 0) {
+        perror("mq_open1");
         exit(-1);
     }
 
@@ -168,6 +177,11 @@ int main(int argc , char *argv[]) {
                 usleep(10);
                 n=recv(sock,buffer,1,0);
                 incoming=buffer[0];
+
+                if ( errno != EAGAIN) {
+                    perror("recv");
+                    exit(-2);
+                }
             }
 
             if(verbose) {
@@ -181,6 +195,7 @@ int main(int argc , char *argv[]) {
                 if(n > 0) {
                     mdump(buffer,32);
                 }
+                rc = mq_send( msg,buffer,incoming,0);
             }
         } else {
             len = mq_receive( msg, &tmp[0], sizeof(tmp), 0);
