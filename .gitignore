@@ -31,3 +31,4 @@ httpd_2
 Test
 local
 remote
+.gdb_history
