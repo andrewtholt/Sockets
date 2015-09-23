@@ -23,6 +23,8 @@ Simple TCP/IP echo server.
 #include <mqueue.h>
 
 /*  Global constants  */
+#define MQ_DEF_MSGSIZE 1024
+#define MQ_DEF_MAXMSG 16
 
 #define MAX_LINE 1024
 #define LISTENQ        (1024)
@@ -37,6 +39,10 @@ void usage() {
     printf("\n");
     printf("\t-r\t\tReceiver(default).\n");
     printf("\t-s\t\tSender.\n");
+    printf("\n");
+    printf("Note\n");
+    printf("\tThe value in /proc/sys/fs/mqueue/msgsize_default must be\n" );
+    printf("\tThe same on the sending and receiving systems\n");
     printf("\n");
     exit(0);
 }
@@ -66,6 +72,8 @@ int main(int argc, char *argv[]) {
     void *t;
 
     mqd_t msg;
+    struct mq_attr TX;
+    struct mq_attr oldTX;
 
     int sender=0;
 
@@ -163,11 +171,20 @@ int main(int argc, char *argv[]) {
     /*  Enter an infinite loop to respond
         to client requests and echo input  */
 
-    msg = mq_open( queue, oflag, 0660, NULL);
+    TX.mq_msgsize = MQ_DEF_MSGSIZE;
+    TX.mq_maxmsg = MQ_DEF_MAXMSG;
+    TX.mq_flags = 0;
+
+    msg = mq_open( queue, oflag, 0660, &TX);
 
     if ( msg < 0 ) {
         perror("mq_open");
         exit(-1);
+    }
+
+    rc=mq_getattr(msg, &TX);
+    if( rc == 0) {
+        printf("mq_msgsize %d\n", TX.mq_msgsize);
     }
     while ( 1 ) {
 

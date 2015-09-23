@@ -30,6 +30,9 @@ void usage() {
     printf("\t-r\t\tReceiver.\n");
     printf("\t-s\t\tSender (default).\n");
     printf("\n");
+    printf("\tThe value in /proc/sys/fs/mqueue/msgsize_default must be\n" );
+    printf("\tThe same on the sending and receiving systems\n");
+    printf("\n");
     exit(0);
 }
 
@@ -143,9 +146,11 @@ int main(int argc , char *argv[]) {
 
     puts("Connected\n");
 
-    //keep communicating with server
-    //
-    msg = mq_open( queue, oflag, 0660, NULL );
+    TX.mq_msgsize = MQ_DEF_MSGSIZE;
+    TX.mq_maxmsg = MQ_DEF_MAXMSG;
+    TX.mq_flags = 0;
+
+    msg = mq_open( queue, oflag, 0660, &TX );
 
     if( msg < 0) {
         perror("mq_open");
