@@ -18,7 +18,9 @@ Simple TCP/IP echo server.
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
 #include <errno.h>
+#include <mqueue.h>
 
 /*  Global constants  */
 
@@ -57,11 +59,18 @@ int main(int argc, char *argv[]) {
     int incoming;
     int   opt;
     uint8_t len;
+    int oflag;
+
+    char tmp[1024];
+    char message[1000];
+    void *t;
+
+    mqd_t msg;
 
     int sender=0;
 
     strcpy(address,"127.0.0.1");
-    strcpy(queue,"/RX");
+    strcpy(queue,"/Remote");
 
     while((opt = getopt(argc, argv,"vha:p:m:sr")) != -1) {
         switch(opt) {
@@ -90,7 +99,7 @@ int main(int argc, char *argv[]) {
                 usage();
                 break;
         }
-    }   
+    }
 
     if(verbose) {   
         printf("Address :%s\n",address);
@@ -104,6 +113,14 @@ int main(int argc, char *argv[]) {
         }
         printf("\n");
     }
+
+    if(sender == 1) {
+        oflag = O_RDONLY;
+    } else {
+        oflag = O_WRONLY;
+    }
+    oflag |= O_CREAT;
+
 
     /*  Get port number from the command line, and
         set to default port if no arguments were supplied  */
@@ -146,6 +163,12 @@ int main(int argc, char *argv[]) {
     /*  Enter an infinite loop to respond
         to client requests and echo input  */
 
+    msg = mq_open( queue, oflag, 0660, NULL);
+
+    if ( msg < 0 ) {
+        perror("mq_open");
+        exit(-1);
+    }
     while ( 1 ) {
 
         /*  Wait for a connection, then accept() it  */
@@ -170,7 +193,7 @@ int main(int argc, char *argv[]) {
                 while( (EAGAIN == errno) && (-1 == n) ) { 
                     usleep(10);
                     n=recv(conn_s,buffer,1,0);
-                        incoming=buffer[0];
+                    incoming=buffer[0];
                 }
 
                 if(verbose) {
@@ -186,6 +209,21 @@ int main(int argc, char *argv[]) {
                     }
                 }
             } else {
+                len = mq_receive( msg, &tmp[0], sizeof(tmp), 0);
+
+                if( len < 0) {
+                    perror("mq_receive");
+                    exit(-1);
+                }
+            }
+
+            printf("length = %d\n",len);
+            t=memcpy(&message[1],tmp,len);
+            message[0]=(uint8_t)len;
+            mdump(tmp,32);
+
+            if( send(conn_s , message , len+1 , 0) < 0) {
+                printf("Send Failed\n");
             }
 
 

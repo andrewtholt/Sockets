@@ -12,9 +12,12 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <mqueue.h>
+#include <errno.h>
 
 #define MQ_DEF_MSGSIZE 1024
 #define MQ_DEF_MAXMSG 16
+
+#define MAX_LINE 1000
 
 void usage() {
     printf("Usage: local\n\n");
@@ -41,12 +44,17 @@ int main(int argc , char *argv[]) {
     char server_reply[2000];
     char address[32];
     char tmp[1024];
+    char buffer[MAX_LINE];
+
     int len;
     void *t;
     int rc;
+    int oflag;
 
     int sender=-1;
 
+    int n;
+    int incoming;
     mqd_t msg;
     struct mq_attr TX;
 
@@ -54,13 +62,13 @@ int main(int argc , char *argv[]) {
     TX.mq_maxmsg = MQ_DEF_MAXMSG;
 
     strcpy(address,"127.0.0.1");
-    strcpy(queue,"/TX");
+    strcpy(queue,"/Local");
 
     printf("Profibus Sender (Local)\n");
 
     int   opt;
 
-    while((opt = getopt(argc, argv,"vha:p:m:")) != -1) {
+    while((opt = getopt(argc, argv,"vha:p:m:sr")) != -1) {
         switch(opt) {
             case 'h':
                 usage();
@@ -104,6 +112,14 @@ int main(int argc , char *argv[]) {
         rc=mq_getattr(msg, &TX);
     }
 
+    if(sender) {
+        oflag=O_RDONLY;
+    } else {
+        oflag=O_WRONLY;
+    }
+
+    oflag |= O_CREAT;
+
     //Create socket
     sock = socket(AF_INET , SOCK_STREAM , 0);
 
@@ -126,8 +142,8 @@ int main(int argc , char *argv[]) {
 
     //keep communicating with server
     //
-    msg = mq_open( queue, O_RDWR|O_CREAT, 0660, &TX );
-    
+    msg = mq_open( queue, oflag, 0660, NULL );
+
     if( msg < 0) {
         perror("mq_open");
         exit(-1);
@@ -135,24 +151,49 @@ int main(int argc , char *argv[]) {
 
 
     while(1) {
-        len = mq_receive( msg, &tmp[0], sizeof(tmp), 0);
+        if ( sender == 0) {
+            printf("Input ....\n");
+            errno = EAGAIN;
+            n = -1;
 
-        if( len < 0) {
-            perror("sender");
-            exit(-1);
-        }
+            while( (EAGAIN == errno) && (-1 == n) ) {
+                usleep(10);
+                n=recv(sock,buffer,1,0);
+                incoming=buffer[0];
+            }
 
-        printf("length = %d\n",len);
-        t=memcpy(&message[1],tmp,len);
+            if(verbose) {
+                printf("%d bytes recieved ...\n",n);
+                printf("... %d bytes expected\n",incoming);
+            }
 
-        message[0]=(uint8_t)len;
+            if( incoming > 0 ) { 
+                n=recv(sock,buffer,incoming,0);
 
-        mdump(tmp,32);
+                if(n > 0) {
+                    mdump(buffer,32);
+                }
+            }
+        } else {
+            len = mq_receive( msg, &tmp[0], sizeof(tmp), 0);
 
-        //Send some data
-        if( send(sock , message , len+1 , 0) < 0) {
-            puts("Send failed");
-            return 1;
+            if( len < 0) {
+                perror("sender");
+                exit(-1);
+            }
+
+            printf("length = %d\n",len);
+            t=memcpy(&message[1],tmp,len);
+
+            message[0]=(uint8_t)len;
+
+            mdump(tmp,32);
+
+            //Send some data
+            if( send(sock , message , len+1 , 0) < 0) {
+                puts("Send failed");
+                return 1;
+            }
         }
     }
 
