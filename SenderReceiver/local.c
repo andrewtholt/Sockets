@@ -7,6 +7,7 @@
 #include <sys/socket.h>    //socket
 #include <arpa/inet.h> //inet_addr
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -17,7 +18,7 @@
 #define MQ_DEF_MSGSIZE 1024
 #define MQ_DEF_MAXMSG 16
 
-#define MAX_LINE 1000
+#define MAX_LINE 1024
 
 void usage() {
     printf("Usage: local\n\n");
@@ -54,15 +55,12 @@ int main(int argc , char *argv[]) {
     int rc;
     int oflag;
 
-    int sender=-1;
+    bool sender=true;
 
     int n;
     int incoming;
     mqd_t msg;
     struct mq_attr TX;
-
-    TX.mq_msgsize = MQ_DEF_MSGSIZE;
-    TX.mq_maxmsg = MQ_DEF_MAXMSG;
 
     strcpy(address,"127.0.0.1");
     strcpy(queue,"/Local");
@@ -89,10 +87,10 @@ int main(int argc , char *argv[]) {
                 strncpy(queue,optarg,32);
                 break;
             case 'r':
-                sender=0;
+                sender=false;
                 break;
             case 's':
-                sender=-1;
+                sender=true;
                 break;
             default:
                 usage();
@@ -118,13 +116,6 @@ int main(int argc , char *argv[]) {
         }
     }
 
-    if(sender) {
-        oflag=O_RDONLY;
-    } else {
-        oflag=O_WRONLY;
-    }
-
-    oflag |= O_CREAT;
 
     //Create socket
     sock = socket(AF_INET , SOCK_STREAM , 0);
@@ -150,25 +141,23 @@ int main(int argc , char *argv[]) {
     TX.mq_maxmsg = MQ_DEF_MAXMSG;
     TX.mq_flags = 0;
 
-    msg = mq_open( queue, oflag, 0660,NULL);
+    if(sender) {
+        oflag=O_RDONLY;
+    } else {
+        oflag=O_WRONLY;
+    }
+    oflag |= O_CREAT;
+
+    msg = mq_open( queue, oflag, 0660, &TX );
 
     if( msg < 0) {
         perror("mq_open");
         exit(-1);
     }
 
-    mq_close(msg);
-
-    msg = mq_open( queue, oflag, 0660, &TX );
-
-    if( msg < 0) {
-        perror("mq_open1");
-        exit(-1);
-    }
-
 
     while(1) {
-        if ( sender == 0) {
+        if ( sender == false) {
             printf("Input ....\n");
             errno = EAGAIN;
             n = -1;

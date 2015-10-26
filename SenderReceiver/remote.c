@@ -122,12 +122,6 @@ int main(int argc, char *argv[]) {
         printf("\n");
     }
 
-    if(sender == 1) {
-        oflag = O_RDONLY;
-    } else {
-        oflag = O_WRONLY;
-    }
-    oflag |= O_CREAT;
 
 
     /*  Get port number from the command line, and
@@ -174,6 +168,13 @@ int main(int argc, char *argv[]) {
     TX.mq_msgsize = MQ_DEF_MSGSIZE;
     TX.mq_maxmsg = MQ_DEF_MAXMSG;
     TX.mq_flags = 0;
+
+    if(sender == 1) {
+        oflag = O_RDONLY;
+    } else {
+        oflag = O_WRONLY;
+    }
+    oflag |= O_CREAT;
 
     msg = mq_open( queue, oflag, 0660, &TX);
 
