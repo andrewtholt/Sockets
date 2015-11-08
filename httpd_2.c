@@ -46,8 +46,24 @@ void usage() {
 
 }
 
-void header(int fd) {
-    send(fd, "Server: Test/Testing\n\n", 17, 0);
+void sendTo(int fd, char *data) {
+    int len;
+
+    len=strlen(data)+1;
+
+    send(fd, data, len, 0);
+}
+
+void header(int fd,int contentLength) {
+    char buffer[255];  // completely arbritray, should be enough.
+
+    sendTo(fd, "Server: Test/Testing\n");
+    sendTo(fd, "Content-Type: text/plain\n");
+    if(contentLength > 0) {
+        sprintf(buffer,"Content-Length: %d\n", contentLength);
+        sendTo(fd, buffer);
+    }
+    sendTo(fd,"\n\n");
 }
 
 int query(char *q) {
@@ -255,12 +271,13 @@ void respond(int n) {
 
                 switch(query( reqline[1] )) {
                     case 200:
-                        send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
-                        header(clients[n]);
+                        sendTo(clients[n], "HTTP/1.0 200 OK\n");
+                        header(clients[n],4);  // Length of string below
+                        sendTo(clients[n], "22\n\n");
                         break;
                     case 404:
-                        write(clients[n], "HTTP/1.0 404 Not Found\n", 23);
-                        header(clients[n]);
+                        sendTo(clients[n], "HTTP/1.0 404 Not Found\n");
+                        header(clients[n], 0);
                         break;
                 }
 
@@ -282,18 +299,19 @@ void respond(int n) {
 
         } else if ( strncmp(reqline[0], "HEAD\0", 5)==0 ) {
             printf("HEAD\n");
-            send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
-            header(clients[n]);
+            sendTo(clients[n], "HTTP/1.0 200 OK\n");
+            header(clients[n],0);
         } else if ( strncmp(reqline[0], "POST\0", 5)==0 ) {
             printf("POST\n");
             switch( update(reqline[1])) {
                 case 200:
-                    send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
-                    header(clients[n]);
+                    sendTo(clients[n], "HTTP/1.0 200 OK\n");
+                    header(clients[n],0);
                     break;
                 case 404:
-                    write(clients[n], "HTTP/1.0 404 Not Found\n", 23);
-                    header(clients[n]);
+//                    write(clients[n], "HTTP/1.0 404 Not Found\n", 23);
+                    sendTo(clients[n], "HTTP/1.0 404 Not Found\n");
+                    header(clients[n],0);
                     break;
             }
         }
