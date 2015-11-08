@@ -35,6 +35,20 @@ void error(char *);
 void startServer(char *);
 void respond(int);
 
+void usage() {
+    printf("\n");
+    printf("Usage: httpd_2 -r <path> -p <port no> -?\n\n");
+    printf("\t-r <path>\tPath to files.\n");
+    printf("\t-p <port no>\tPort number.\n");
+    printf("\t-?|h\t\tHelp.\n");
+    printf("\n");
+
+}
+
+void header(int fd) {
+    send(fd, "Server: Test/Testing\n\n", 17, 0);
+}
+
 int main(int argc, char* argv[]) {
     struct sockaddr_in clientaddr;
     socklen_t addrlen;
@@ -48,9 +62,8 @@ int main(int argc, char* argv[]) {
     int slot=0;
 
     //Parsing the command line arguments
-    while ((c = getopt (argc, argv, "p:r:")) != -1) {
-        switch (c)
-        {
+    while ((c = getopt (argc, argv, "hp:r:")) != -1) {
+        switch (c) {
             case 'r':
                 ROOT = malloc(strlen(optarg));
                 strcpy(ROOT,optarg);
@@ -58,8 +71,9 @@ int main(int argc, char* argv[]) {
             case 'p':
                 strcpy(PORT,optarg);
                 break;
+            case 'h':
             case '?':
-                fprintf(stderr,"Wrong arguments given!!!\n");
+                usage();
                 exit(1);
             default:
                 exit(1);
@@ -69,8 +83,9 @@ int main(int argc, char* argv[]) {
     printf("Server started at port no. %s%s%s with root directory as %s%s%s\n","\033[92m",PORT,"\033[0m","\033[92m",ROOT,"\033[0m");
     // Setting all elements to -1: signifies there is no client connected
     int i;
-    for (i=0; i<CONNMAX; i++)
+    for (i=0; i<CONNMAX; i++) {
         clients[i]=-1;
+    }
     startServer(PORT);
 
     // ACCEPT connections
@@ -138,10 +153,14 @@ void respond(int n) {
 
     if (rcvd<0)    // receive error
         fprintf(stderr,("recv() error\n"));
-    else if (rcvd==0)    // receive socket closed
+        // receive socket closed 
+    else if (rcvd==0) {
         fprintf(stderr,"Client disconnected upexpectedly.\n");
-    else {    // message received
+    } else {    // message received
+        printf("==========================\n");
         printf("%s", mesg);
+        printf("==========================\n");
+
         reqline[0] = strtok (mesg, " \t\n");
         
         if ( strncmp(reqline[0], "GET\0", 4)==0 ) {
@@ -158,9 +177,11 @@ void respond(int n) {
                 strcpy(&path[strlen(ROOT)], reqline[1]);
                 printf("file: %s\n", path);
 
-                if ( (fd=open(path, O_RDONLY))!=-1 )    //FILE FOUND
-                {
-                    send(clients[n], "HTTP/1.0 200 OK\n\n", 17, 0);
+                //FILE FOUND
+                if ( (fd=open(path, O_RDONLY))!=-1 )    {
+                    send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
+                    header(clients[n]);
+
                     while ( (bytes_read=read(fd, data_to_send, BYTES))>0 )
                         write (clients[n], data_to_send, bytes_read);
                 }
