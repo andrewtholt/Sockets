@@ -25,6 +25,7 @@ starts the server at port 10000 with ROOT as /home/shadyabhi
 #include<netdb.h>
 #include<signal.h>
 #include<fcntl.h>
+#include <string.h>
 
 #define CONNMAX 1000
 #define BYTES 1024
@@ -47,6 +48,82 @@ void usage() {
 
 void header(int fd) {
     send(fd, "Server: Test/Testing\n\n", 17, 0);
+}
+
+int query(char *q) {
+    char *tmp;
+    char *tmp1;
+
+    char *room;
+    char *device;
+    char *param;
+
+    int rc;   // http status code
+
+    printf("Query: %s\n",q);
+
+    room = strtok(q,"/");
+
+    printf("room:%s\n", room);
+
+    device = strtok(NULL,"/?");
+
+    printf("device:%s\n", device);
+
+    param = strtok(NULL,"/");
+    if( param != (char *)NULL) {
+        printf("param:%s\n", param);
+
+        tmp = strchr( param, '=');
+        if(tmp == (char *)NULL) {
+            printf("No =\n");
+        } else {
+            tmp1=strrchr( param, '\0' );
+            if( tmp+1 == tmp1 ) {
+                char *p;
+                printf("No value\n");
+
+                p=strtok(param,"=");
+                printf("Query, sortof\n");
+                printf("select %s from %s\n",p,room);
+            } else {
+                char *p;
+                char *v;
+
+                printf("Value\n");
+
+                p=strtok(param,"=");
+                v=strtok(NULL,"=");
+                printf("select %s from %s where %s='%s'\n",p,room,p,v);
+            }
+        }
+    }
+
+    rc = 200;
+
+    return(rc);
+}
+
+int update(char *u) {
+    char *room;
+    char *device;
+    char *param;
+    int rc=200;
+
+    printf("%s\n",u);
+
+    room = strtok(u,"/");
+
+    device = strtok(NULL,"/?");
+
+    param = strtok(NULL,"/");
+
+    printf("Room  : %s\n",room);
+    printf("Device: %s\n",device);
+    printf("Param : %s\n",param);
+
+    return(rc);
+
 }
 
 int main(int argc, char* argv[]) {
@@ -159,12 +236,12 @@ void respond(int n) {
     } else {    // message received
         printf("==========================\n");
         printf("%s", mesg);
-        printf("==========================\n");
+        printf("\n==========================\n");
 
         reqline[0] = strtok (mesg, " \t\n");
+        reqline[1] = strtok (NULL, " \t");
         
         if ( strncmp(reqline[0], "GET\0", 4)==0 ) {
-            reqline[1] = strtok (NULL, " \t");
             reqline[2] = strtok (NULL, " \t\n");
             
             if ( strncmp( reqline[2], "HTTP/1.0", 8)!=0 && strncmp( reqline[2], "HTTP/1.1", 8)!=0 ) {
@@ -175,8 +252,21 @@ void respond(int n) {
 
                 strcpy(path, ROOT);
                 strcpy(&path[strlen(ROOT)], reqline[1]);
+
+                switch(query( reqline[1] )) {
+                    case 200:
+                        send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
+                        header(clients[n]);
+                        break;
+                    case 404:
+                        write(clients[n], "HTTP/1.0 404 Not Found\n", 23);
+                        header(clients[n]);
+                        break;
+                }
+
                 printf("file: %s\n", path);
 
+                /*
                 //FILE FOUND
                 if ( (fd=open(path, O_RDONLY))!=-1 )    {
                     send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
@@ -184,14 +274,28 @@ void respond(int n) {
 
                     while ( (bytes_read=read(fd, data_to_send, BYTES))>0 )
                         write (clients[n], data_to_send, bytes_read);
+                } else {
+                    write(clients[n], "HTTP/1.0 404 Not Found\n", 23); //FILE NOT FOUND
                 }
-                else    write(clients[n], "HTTP/1.0 404 Not Found\n", 23); //FILE NOT FOUND
+                */
             }
 
         } else if ( strncmp(reqline[0], "HEAD\0", 5)==0 ) {
             printf("HEAD\n");
             send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
             header(clients[n]);
+        } else if ( strncmp(reqline[0], "POST\0", 5)==0 ) {
+            printf("POST\n");
+            switch( update(reqline[1])) {
+                case 200:
+                    send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
+                    header(clients[n]);
+                    break;
+                case 404:
+                    write(clients[n], "HTTP/1.0 404 Not Found\n", 23);
+                    header(clients[n]);
+                    break;
+            }
         }
     }
 
