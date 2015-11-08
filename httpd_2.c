@@ -187,6 +187,11 @@ void respond(int n) {
                 }
                 else    write(clients[n], "HTTP/1.0 404 Not Found\n", 23); //FILE NOT FOUND
             }
+
+        } else if ( strncmp(reqline[0], "HEAD\0", 5)==0 ) {
+            printf("HEAD\n");
+            send(clients[n], "HTTP/1.0 200 OK\n", 17, 0);
+            header(clients[n]);
         }
     }
 
