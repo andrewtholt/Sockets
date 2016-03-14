@@ -42,6 +42,7 @@ void handle(int newsock) {
     char *ptr;
     char *p1=(char *)NULL;
     char *p2=(char *)NULL;
+    char nodename[255];
 
 
     /*
@@ -87,14 +88,20 @@ void handle(int newsock) {
                                 }
                                 Writeline(newsock,(void *)"ERROR:WHO\n",10);
                         } else if(!identified && (!strcmp(p1,"NODENAME"))) {
+                            strncpy(nodename,p2,strlen(p2)); // fix this min(strlen(p2),sizeof(nodename))
                             // If nodename not set, and I'm trying to set it then OK.
                             //
                             // Check if nodename is know to me.
                             // If not send ERROR:UNKNOWN and disconnect
                             // If known load config and send OK
                             //
+                            identified=true;
                         } else if(identified) {
                             // Nodename set.
+                            //
+                            sprintf(buffer,"HSET %s %s %s\n", nodename,p1,p2);
+                            Writeline(newsock,buffer,strlen(buffer));
+
                         }
                     }
 
