@@ -1,0 +1,15 @@
+
+Each connection has the following attributes:
+
+NODENAME Unique to each node.
+
+PATHSPEC The printf style format string for the base path, e.g.:
+
+/home/inside/$NODENAME
+
+If using MQTT a pub/sub request is relative to this, so a node name "fred" send "^pub TEMPERATURE" becomes
+
+/home/inside/fred/TEMPERATURE
+
+
+
