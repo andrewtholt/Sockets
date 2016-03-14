@@ -14,6 +14,7 @@
 */
 
 // #define DEBUG 1
+//
 
 #ifndef PG_SOCK_HELP
 #define PG_SOCK_HELP
@@ -26,8 +27,8 @@
 
 /*  Function declarations  */
 
-ssize_t Readline(int fd, void *vptr, size_t maxlen);
-ssize_t Writeline(int fc, const void *vptr, size_t maxlen);
+ssize_t Readline(int fd, void *vptr, int maxlen);
+ssize_t Writeline(int fc, void *vptr, int maxlen);
 
 
 #endif  /*  PG_SOCK_HELP  */

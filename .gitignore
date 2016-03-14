@@ -5,7 +5,8 @@
 # Libraries
 *.lib
 *.a
-
+# Editing
+*.swp
 # Shared objects (inc. Windows DLLs)
 *.dll
 *.so

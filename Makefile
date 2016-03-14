@@ -1,4 +1,6 @@
-BINS=forked-server modbusd echoserv client httpd httpd_1 httpd_2
+CCC=g++
+# BINS=forked-server modbusd client httpd httpd_1 httpd_2 # echoserv
+BINS=forked-server
 
 all:	$(BINS)
 
@@ -8,17 +10,17 @@ client:	client.c
 modbusd:	modbusd.c
 	$(CC) -g $? -o $@
 
-echoserv:	echoserv.o helper.o
+echoserv:	echoserv.o helper.o helper.o
 	$(CC) -g echoserv.o helper.o -o echoserv
 
-forked-server:	forked-server.c
-	$(CC) -g forked-server.c -o forked-server
+forked-server:	forked-server.c helper.o
+	$(CCC) -g forked-server.c helper.o -o forked-server
 
-echoserv.o:	echoserv.c
+echoserv.o:	echoserv.c 
 	$(CC) -c -g $? -o $@
 
 helper.o:	helper.c
-	$(CC) -c -g $? -o $@
+	$(CCC) -c -g $? -o $@
 
 clean:
 	rm -f $(BINS) *.o cscope.out

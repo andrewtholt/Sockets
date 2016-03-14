@@ -12,10 +12,16 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <netdb.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
-#define PORT    "32001" /* Port to listen on */
+#include "helper.h"
+
+
+#define PORT    "9091" /* Port to listen on */
 #define BACKLOG     10  /* Passed to listen() */
 
+bool verbose;
 /* Signal handler to reap zombie processes */
 
 static void wait_for_child(int sig) {
@@ -28,8 +34,18 @@ static void wait_for_child(int sig) {
 void handle(int newsock) {
     /* recv(), send(), close() */
 
+    bool runFlag=true;
+    bool identified = false;
+    int rc=0;
+    char buffer[255];
+
+    char *ptr;
+    char *p1=(char *)NULL;
+    char *p2=(char *)NULL;
+
+
     /*
-     * Get name of client (this will be used to create the spread user name).
+     * Get name of client (this will be used to create the client name).
      *
      * If unknown create an entry in db.
      * If known mark as connected.
@@ -38,20 +54,95 @@ void handle(int newsock) {
      *
      * wait for destination and message.
      */
+    while(runFlag) {
+        rc=Readline(newsock,(void *)buffer,sizeof(buffer));
+
+        if( rc == 0) {
+            runFlag=false;
+        }
+
+        if( rc > 0 ) {
+            if(strlen(buffer) > 0) {
+                printf("Buffer:>%s<\n",buffer);
+                if(buffer[0] == '^') {
+                    printf("\tCommand\n");
+
+                    ptr = strtok(buffer," \r\n");
+                    if(!strcmp(ptr,"^exit")) {
+                            runFlag=false;
+                    } else if(!strcmp(ptr,"^set")) {
+                        p1=strtok(NULL," ");
+                        p2=strtok(NULL," \r\n");
+
+                        if(identified && (!strcmp(p1,"NODENAME"))) {
+                            // If the nodename is set, don't allow me to change it.
+                                if(verbose) {
+                                    fprintf(stderr,"Already Knowm\n");
+                                }
+                                Writeline(newsock,(void *)"ERROR:KNOWN\n",12);
+                        } else if(!identified && (strcmp(p1,"NODENAME"))) {
+                            // If the nodename is not set don't allow me to set anything else
+                                if(verbose) {
+                                    fprintf(stderr,"Who are you?\n");
+                                }
+                                Writeline(newsock,(void *)"ERROR:WHO\n",10);
+                        } else if(!identified && (!strcmp(p1,"NODENAME"))) {
+                            // If nodename not set, and I'm trying to set it then OK.
+                        } else if(identified) {
+                            // Nodename set.
+                        }
+                    }
+
+                } else {
+                }
+            }
+        }
+    }
+    close(newsock);
 }
 
-int main(void) {
+int main(int argc,char *argv[]) {
+    bool verbose=false;
+
     int sock;
+    char port[6];
+
     struct sigaction sa;
     struct addrinfo hints, *res;
     int reuseaddr = 1; /* True */
+
+    int opt;
+
+    (void) strncpy(port,PORT,sizeof(port));
+
+    while((opt=getopt(argc,argv,"p:vh?"))!=-1) {
+        switch(opt) {
+            case 'h':
+                printf("\nHelp\n\n");
+                exit(0);
+                break;
+            case 'v':
+                verbose=true;
+                break;
+            case 'p':
+                (void) strncpy(port,optarg,sizeof(port));
+                break;
+            default:
+                break;
+        }
+    }
+
+    if(verbose) {
+        printf("\n\tSettings\n\n");
+        printf("port:    %4s\n",port);
+    }
 
     /* Get the address info */
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    if (getaddrinfo(NULL, PORT, &hints, &res) != 0) {
+    if (getaddrinfo(NULL, port, &hints, &res) != 0) {
         perror("getaddrinfo");
         return 1;
     }
