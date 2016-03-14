@@ -88,6 +88,11 @@ void handle(int newsock) {
                                 Writeline(newsock,(void *)"ERROR:WHO\n",10);
                         } else if(!identified && (!strcmp(p1,"NODENAME"))) {
                             // If nodename not set, and I'm trying to set it then OK.
+                            //
+                            // Check if nodename is know to me.
+                            // If not send ERROR:UNKNOWN and disconnect
+                            // If known load config and send OK
+                            //
                         } else if(identified) {
                             // Nodename set.
                         }
