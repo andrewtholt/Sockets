@@ -13,6 +13,10 @@ def sendSet(to,name,value):
     print msg
     to.send(msg)
 
+def sendDump(to):
+    msg="DUMP"
+    print msg
+    to.send(msg)
 
 def main():
     print "Main"
@@ -29,6 +33,8 @@ def main():
     print superMq.key
     print "==========++"
 
+
+    sendDump(superMq)
     runFlag=True
 
     stuff={}

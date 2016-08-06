@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sysv_ipc as ipc
-import parameter as value
+import parameter as p
 
 
 def main():
@@ -22,15 +22,25 @@ def main():
 
         if data[0] == "GET":
             print "GET"
-            result=stuff.get(data[1],"UNKNOWN")
-            print result
+
+            if stuff.has_key(data[1]):
+                print "Found"
+                print (stuff.get(data[1]).getValue())
+            else:
+                print "UNKNOWN"
+
         elif data[0] == "SET":
             print "Cmd  : SET"
             print "Name :"+data[1]
             print "Value:"+data[2]
 
-            stuff[ data[1] ] = data[2]
-            print stuff
+            stuff[ data[1] ] = p.parameter(data[2])
+        elif data[0] == "DUMP":
+            print "==== START ====="
+            for key in stuff:
+                print key
+                print (stuff[key]).getValue()
+            print "==== END   ====="
         else:
             print "What ?",b
 
