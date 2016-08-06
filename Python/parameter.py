@@ -1,12 +1,12 @@
 
 class parameter:
     value=""
-    published=True
+    published=False
     subscribers=set()
 
-    def __init__(self,value):
-        print "Created"
+    def __init__(self,value, pub):
         self.value=value
+        self.published = pub
 
     def setPublished():
         self.published=True
@@ -15,30 +15,38 @@ class parameter:
         self.published=False
 
     def getValue(self):
-        return self.value
+        
+        if self.published:
+            return self.value
+        else:
+            return "PRIVATE"
 
     def setValue(self,v):
-        self.value=v
+        if self.published:
+            self.value=v
+            return "OK"
+        else:
+            return "PRIVATE"
 
-    def subscribe(qid):
+    def subscribe(self,qid):
         if self.published:
             print "Published"
-            subscribers.add( qid )
+            self.subscribers.add( qid )
         else:
             print "Private"
 
-    def unsubscribe(qid):
+    def unsubscribe(self,qid):
         if self.published:
-            subscribers.discard( qid )
+            self.subscribers.discard( qid )
         else:
             print "Private"
 
-    def dump():
+    def dump(self):
         print "Value    :"+self.value
 
         if self.published:
             print "Published:True"
-            for subscriber in subscribers:
+            for subscriber in self.subscribers:
                 print subscriber
         else:
             print "Published:True"
