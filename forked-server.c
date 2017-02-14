@@ -38,6 +38,7 @@ void handle(int newsock) {
     bool identified = false;
     int rc=0;
     char buffer[255];
+    char outBuffer[255];
 
     char *ptr;
     char *p1=(char *)NULL;
@@ -99,8 +100,9 @@ void handle(int newsock) {
                         } else if(identified) {
                             // Nodename set.
                             //
-                            sprintf(buffer,"HSET %s %s %s\n", nodename,p1,p2);
-                            Writeline(newsock,buffer,strlen(buffer));
+                            memset(outBuffer,0, sizeof(outBuffer));
+                            sprintf(outBuffer,"HSET %s %s %s\n", nodename,p1,p2);
+                            Writeline(newsock,outBuffer,strlen(outBuffer));
 
                         }
                     }
