@@ -202,8 +202,8 @@ int main(int argc,char *argv[]) {
     /* Main loop */
     while (1) {
         struct sockaddr_in their_addr;
-        size_t size = sizeof(struct sockaddr_in);
-        int newsock = accept(sock, (struct sockaddr*)&their_addr, &size);
+        unsigned int size = sizeof(struct sockaddr_in);
+         int newsock = accept(sock, (struct sockaddr*)&their_addr, &size);
         int pid;
 
         if (newsock == -1) {

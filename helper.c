@@ -21,8 +21,6 @@ Programming", W Richard Stevens (Prentice Hall).
 #include <string.h>
 
 
-
-
 /* Read a line from a socket  */
 
 ssize_t Readline(int sockd, void *vptr, int maxlen) {
@@ -32,14 +30,12 @@ ssize_t Readline(int sockd, void *vptr, int maxlen) {
 
     buffer = (char *)vptr;
 
-//    printf("Readline.\n");
     for (n = 1; n < maxlen; n++) {
 
         if((rc=recv(sockd, &c, 1, 0)) == 1)  {
             //            printf("A\n");
             *buffer++ = c;
             count++;
-
 #ifdef DEBUG
             if( c >= 0x20 && c <=0x7f) {
                 printf(":%c: <%02x>",c, c);
@@ -48,7 +44,6 @@ ssize_t Readline(int sockd, void *vptr, int maxlen) {
             }
 #endif
             if (c == '\n') {
-//                printf("\n");
                 break;
             }
         } else if (rc == 0) {
@@ -58,7 +53,6 @@ ssize_t Readline(int sockd, void *vptr, int maxlen) {
             else
                 break;
         } else {
-            // printf("C\n");
             if (errno == EINTR)
                 continue;
             if( errno == EAGAIN)
@@ -71,10 +65,9 @@ ssize_t Readline(int sockd, void *vptr, int maxlen) {
     return n;
 }
 
-
 /* Write a line to a socket  */
 
-int Writeline(int sockd, void *vptr, int n) {
+int Writeline(int sockd, const void *vptr, int n) {
     size_t          nleft;
     ssize_t         nwritten;
     const char     *buffer;
@@ -82,7 +75,6 @@ int Writeline(int sockd, void *vptr, int n) {
     buffer = (char *)vptr;
     nleft = n;
 
-//    printf("Writeline\n");
     while (nleft > 0) {
         if ((nwritten = write(sockd, buffer, nleft)) <= 0) {
             if (errno == EINTR) {
@@ -94,6 +86,5 @@ int Writeline(int sockd, void *vptr, int n) {
         nleft -= nwritten;
         buffer += nwritten;
     }
-
     return n;
 }

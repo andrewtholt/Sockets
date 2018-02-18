@@ -21,6 +21,12 @@ class engine:
     def setQuiet(self):
         self.verbose=False
         
+    def getValueObject(self,name):
+        if self.param.has_key( key ):
+            return self.param[ name ]
+        else:
+            return None
+
     def command(self,cmd):
         print "Engine Command"
 
@@ -44,7 +50,8 @@ class engine:
                     
                 else:
                     print "Param Create"
-                    self.param[ key ] = p.parameter( val, True )
+                    public=True
+                    self.param[ key ] = p.parameter( val, public )
                     return "OK"
 
         elif data[0] == "DUMP":

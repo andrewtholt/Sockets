@@ -1,11 +1,12 @@
 /*
  *
- *   ECHOSERV.C
+ *   HTTPD.C
  *   ==========
- *   (c) Paul Griffiths, 1999
- * Email: mail@paulgriffiths.net
  *
- * Simple TCP/IP echo server.
+ *   Based on echosrv.c by (c) Paul Griffiths, 1999
+ *   Email: mail@paulgriffiths.net
+ *
+ * Simple TCP/IP httpd server.
  *
  */
 
@@ -19,38 +20,141 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 
 /*  Global constants  */
 
-#define ECHO_PORT          (2002)
 #define MAX_LINE           (1000)
+
+// Global variables
+
+int debug;
 
 // ssize_t Writeline(int sockd, const void *vptr, size_t n) 
 
-int WriteFile(int sockd, char *file) {
+void writeHeader(int sockd, int htmlStatus, int contentLength) {
+
+    char buffer[255];
+
+    sprintf(buffer,"HTTP/1.1 %d OK\n",htmlStatus);
+    Writeline(sockd,buffer,strlen(buffer));
+
+    if( debug ) {
+        printf("%s", buffer );
+    }
+
+    sprintf(buffer,"Content-Type: text/html\n");
+    Writeline(sockd,buffer,strlen(buffer));
+
+    if( debug ) {
+        printf("%s", buffer );
+    }
+
+    sprintf(buffer,"Content-Length: %d\n",contentLength);
+    Writeline(sockd,buffer,strlen(buffer));
+
+    if( debug ) {
+        printf("%s", buffer );
+    }
+
+    sprintf(buffer,"\n\n");
+    Writeline(sockd,buffer,strlen(buffer));
+
+    if( debug ) {
+        printf("%s", buffer );
+    }
+
+}
+
+int writeFile(int sockd, char *file, int htmlStatus) {
     FILE *op;
     char buffer[1024];
     char *rc;
-
-    int htmlStatus=200; // Success
+    struct stat st;
+    int size;
 
     op=fopen(file,"r");
-    if( (FILE *)NULL != op ) {
-        strcpy(buffer,"HTTP/1.1 200 OK\n");
 
-        Writeline(sockd,buffer,strlen(buffer));
+    if( (FILE *)NULL != op ) {
+        stat(file, &st);
+        size = st.st_size;
+
+        writeHeader(sockd,200,size);
+
         while( !feof(op) ) {
             rc=fgets(buffer,1024,op);
             Writeline(sockd,buffer,strlen(buffer));
+
+            if( debug ) {
+                printf("%s", buffer );
+            }
         }
         strcpy(buffer,"\n\n");
         Writeline(sockd,buffer,strlen(buffer));
-        htmlStatus = 200;
+
+        if( debug ) {
+            printf("%s", buffer );
+        }
     } else {
         htmlStatus = 404;
     }
 
     return( htmlStatus);
+}
+
+int parsePutGet(char *ptr ) {
+    int parsed;
+    int i;
+    char *tmp;
+
+    i=0;
+    do {
+        if( i == 0) {
+            tmp = (char *)strtok(ptr,"&");
+        } else {
+            tmp = (char *)strtok(NULL," &/"); 
+        }
+
+        if ( tmp != (char *)NULL) {
+            if(!strcmp(tmp,"HTTP")) {
+                parsed=1;
+            } else {
+                printf("\n---->%s<\n",tmp);
+                parsed=0;
+                i++;
+            }
+        }
+    } while( (tmp != (char *)NULL) && (parsed == 0)) ; 
+
+    printf("\n=============================\n");
+
+    return i;
+}
+
+void httpResponse(int sock, int code ) {
+    char buffer[255];
+    int size=0;
+
+    sprintf(buffer,"HTTP/1.1 %d OK\n",code);
+    Writeline(sock,buffer,strlen(buffer));
+
+    sprintf(buffer,"Content-Type: text/html\n");
+    Writeline(sock,buffer,strlen(buffer));
+
+    if( debug ) {
+        printf("%s", buffer );
+    }
+
+    sprintf(buffer,"Content-Length: %d\n",size);
+    Writeline(sock,buffer,strlen(buffer));
+
+    if( debug ) {
+        printf("%s", buffer );
+    }
+
+    sprintf(buffer,"\n\n");
+    Writeline(sock,buffer,strlen(buffer));
+
 }
 
 
@@ -60,6 +164,7 @@ int main(int argc, char *argv[]) {
     short int port;                  /*  port number               */
     struct    sockaddr_in servaddr;  /*  socket address structure  */
     char      buffer[MAX_LINE];      /*  character buffer          */
+    char opBuffer[255];
     char     *endptr;                /*  for strtol()              */
     struct timeval tv;
     int rc;
@@ -67,6 +172,12 @@ int main(int argc, char *argv[]) {
     int runFlag = 1;
     char *ptr;
     int len=0;
+    int i;
+    int parsed;
+
+    char *tmp;
+
+    debug=1;
 
     /*  Get port number from the command line, and
      *        set to default port if no arguments were supplied  */
@@ -132,7 +243,7 @@ int main(int argc, char *argv[]) {
             conn_s = accept(list_s, NULL, NULL);
 
             if (conn_s == -1) {
-//                perror("accept");
+                //                perror("accept");
                 sleep(1);
             }
         }
@@ -148,7 +259,8 @@ int main(int argc, char *argv[]) {
             rc=Readline(conn_s, buffer, MAX_LINE-1);
             len=strlen(buffer);
 
-            printf("len=%d\n",len);
+            //            printf("Buf=>%s<\n",buffer);
+            //            printf("len=%d\n",len);
 
             ptr=strtok(buffer," \r\n");
 
@@ -156,24 +268,43 @@ int main(int argc, char *argv[]) {
                 if( (char *)NULL != ptr) {
                     char *fileName ;
                     char *proto ;
-                    printf("Request=>%s<\n", ptr);
+                    //                    printf("Request=>%s<\n", ptr);
 
                     if(!strcmp(ptr,"GET")) {
                         char file[1024];
-                        fileName = (char *)strtok(NULL," ");
-                        proto    = (char *)strtok(NULL," ");
 
-                        printf("\t>%s<\n", fileName);
-                        printf("\t>%s<\n", proto);
+                        printf("\nGET =========================\n");
+                        tmp = (char *)strtok(NULL,"?");
 
-                        if( !strcmp(fileName,"/")) {
-                            strcpy(file,"/var/www/httpd/index.html");
+                        if( (tmp[0] == '/') && (tmp[1] != 0x00 ) ) {
+                            printf("Filename\n");
+                            strcpy(file,"/var/www/html/default.html");
+                            writeFile(conn_s, file,404);
+                            runFlag=0;
                         } else {
-                            sprintf(file,"/var/www/httpd%s",fileName);
+                            tmp = (char *)strtok(NULL," ");
+                            i=parsePutGet(tmp);
+                            httpResponse(conn_s, 200 );
                         }
-                        printf("\t>%s<\n", file);
 
-                        WriteFile(conn_s, file);
+                    } else if(!strcmp(ptr,"PUT")) {
+                        printf("\nPUT =========================\n");
+                        tmp = (char *)strtok(NULL,"?");
+                        tmp = (char *)strtok(NULL," ");
+                        i=parsePutGet(tmp);
+                        printf("i=%d\n",i);
+
+                        httpResponse(conn_s, 200 );
+
+                        printf("\n=============================\n");
+                    } else if(!strcmp(ptr,"HEAD")) {
+                        writeHeader(conn_s, 200, 0);
+                        runFlag = 0;
+                    } else if(!strcmp(ptr,"POST")) {
+                        printf("\nPOST=========================\n");
+                        httpResponse(conn_s, 501 );
+                        printf("\n=============================\n");
+                        runFlag = 0;
                     }
                 } else {
                     runFlag=0;
@@ -183,15 +314,13 @@ int main(int argc, char *argv[]) {
             if ( rc == 0 ) {
                 runFlag = 0;
             }
-            /*
-             *            sleep(1);
-             *            if( rc > 0) {
-             *                Writeline(conn_s, buffer, strlen(buffer));
-        }
-        */
         }
 
         /*  Close the connected socket  */
+
+        if(debug) {
+            printf("CLOSE\n");
+        }
 
         if ( close(conn_s) < 0 ) {
             fprintf(stderr, "ECHOSERV: Error calling close()\n");
