@@ -33,3 +33,4 @@ Test
 local
 remote
 .gdb_history
+profile.mk
