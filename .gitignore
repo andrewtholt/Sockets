@@ -34,3 +34,4 @@ local
 remote
 .gdb_history
 profile.mk
+my_server

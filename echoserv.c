@@ -104,15 +104,13 @@ int main(int argc, char *argv[]) {
             conn_s = accept(list_s, NULL, NULL);
 
             /*
-            if (conn_s == -1) {
-                perror("accept");
-                sleep(1);
-            }
-            */
+               if (conn_s == -1) {
+               perror("accept");
+               sleep(1);
+               }
+               */
         }
         while( conn_s == -1);
-
-
         /*            
                       if ( (conn_s = accept(list_s, NULL, NULL) ) < 0 ) {
                       fprintf(stderr, "ECHOSERV: Error calling accept()\n");
@@ -129,12 +127,12 @@ int main(int argc, char *argv[]) {
             count++;
 
             rc=Readline(conn_s, buffer, MAX_LINE-1);
-//            printf("count=%d\trc=%d\n",count,rc);
+            //            printf("count=%d\trc=%d\n",count,rc);
 
             if ( rc == 0 ) {
                 runFlag = 0;
             }
-//            sleep(1);
+            //            sleep(1);
             if( rc > 0) {
                 Writeline(conn_s, buffer, strlen(buffer));
                 if (strlen(buffer) > 0) {
