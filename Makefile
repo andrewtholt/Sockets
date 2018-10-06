@@ -1,6 +1,6 @@
 CCC=g++
 # BINS=forked-server modbusd client httpd httpd_1 httpd_2 # echoserv
-BINS=forked-server
+BINS=forked-server client
 
 all:	$(BINS)
 
