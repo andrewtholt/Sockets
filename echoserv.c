@@ -122,6 +122,7 @@ int main(int argc, char *argv[]) {
         /*  Retrieve an input line from the connected socket
             then simply write it back to the same socket.     */
 
+        printf("Connection !\n\n");
         runFlag = 1;
         while(runFlag) {
             count++;
