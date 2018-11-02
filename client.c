@@ -1,12 +1,13 @@
 /*
    C ECHO client example using sockets
-   */
+*/
 #include<stdio.h> //printf
 #include<string.h>    //strlen
 #include<sys/socket.h>    //socket
 #include<arpa/inet.h> //inet_addr
 
 #include <stdlib.h>
+#include <unistd.h>
 
 
 int main(int argc , char *argv[]) {

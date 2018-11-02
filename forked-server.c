@@ -15,7 +15,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+extern "C" {
 #include "helper.h"
+}
 
 
 #define PORT    "9091" /* Port to listen on */
