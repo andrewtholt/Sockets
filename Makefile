@@ -1,25 +1,25 @@
-CCC=g++
+CPP=g++
 # BINS=forked-server modbusd client httpd httpd_1 httpd_2 # echoserv
-BINS=forked-server client echoserv
+BINS=forked-server client # echoserv
 
 all:	$(BINS)
 
 client:	client.c
-	$(CC) -g $? -o $@
+	$(CPP) -g $? -o $@
 
 modbusd:	modbusd.c
 	$(CC) -g $? -o $@
 
 echoserv:	echoserv.o helper.o 
-	$(CC) -g echoserv.o helper.o -o echoserv
+	$(CPP) -g echoserv.o helper.o -o echoserv
 
 forked-server:	forked-server.c helper.o
-	$(CCC) -g forked-server.c helper.o -o forked-server
+	$(CPP) -g forked-server.c helper.o -o forked-server
 
 echoserv.o:	echoserv.c 
-	$(CC) -c -g $? -o $@
+	$(CPP) -c -g $? -o $@
 
-helper.o:	helper.c
+helper.o:	helper.c Makefile
 	$(CC) -c -g $? -o $@
 
 clean:

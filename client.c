@@ -23,8 +23,9 @@ int main(int argc , char *argv[]) {
         fprintf(stderr,"I need you to specify a port\n");
         exit(1);
     }
-
-    //Create socket
+    // 
+    // Create socket
+    // 
     sock = socket(AF_INET , SOCK_STREAM , 0);
 
     if (sock == -1) {
@@ -35,29 +36,33 @@ int main(int argc , char *argv[]) {
     server.sin_addr.s_addr = inet_addr("192.168.10.119");
     server.sin_family = AF_INET;
     server.sin_port = htons( port );
-
-    //Connect to remote server
+    // 
+    // Connect to remote server
+    // 
     if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0) {
         perror("connect failed. Error");
         return 1;
     }
 
     puts("Connected\n");
-
-    //keep communicating with server
-
+    // 
+    // keep communicating with server
+    // 
     while(1) {
         printf("Enter message : ");
         scanf("%s" , message);
 
         strcat(message,"\n");
-        //Send some data
+        // 
+        // Send some data
+        // 
         if( send(sock , message , strlen(message) , 0) < 0) {
             puts("Send failed");
             return 1;
         }
-
-        //Receive a reply from the server
+        // 
+        // Receive a reply from the server
+        // 
         if( recv(sock , server_reply , 2000 , 0) < 0) {
             puts("recv failed");
             break;

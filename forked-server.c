@@ -1,8 +1,7 @@
 /* 
-*  A forked server
-*  by Martin Broadhurst (www.martinbroadhurst.com)
-*/
-
+ *  A forked server
+ *  by Martin Broadhurst (www.martinbroadhurst.com)
+ */
 #include <stdio.h>
 #include <string.h> /* memset() */
 #include <sys/socket.h>
@@ -46,8 +45,6 @@ void handle(int newsock) {
     char *p1=(char *)NULL;
     char *p2=(char *)NULL;
     char nodename[255];
-
-
     /*
      * Get name of client (this will be used to create the client name).
      *
@@ -73,23 +70,23 @@ void handle(int newsock) {
 
                     ptr = strtok(buffer," \r\n");
                     if(!strcmp(ptr,"^exit")) {
-                            runFlag=false;
+                        runFlag=false;
                     } else if(!strcmp(ptr,"^set")) {
                         p1=strtok(NULL," ");
                         p2=strtok(NULL," \r\n");
 
                         if(identified && (!strcmp(p1,"NODENAME"))) {
                             // If the nodename is set, don't allow me to change it.
-                                if(verbose) {
-                                    fprintf(stderr,"Already Knowm\n");
-                                }
-                                Writeline(newsock,(void *)"ERROR:KNOWN\n",12);
+                            if(verbose) {
+                                fprintf(stderr,"Already Knowm\n");
+                            }
+                            Writeline(newsock,(void *)"ERROR:KNOWN\n",12);
                         } else if(!identified && (strcmp(p1,"NODENAME"))) {
                             // If the nodename is not set don't allow me to set anything else
-                                if(verbose) {
-                                    fprintf(stderr,"Who are you?\n");
-                                }
-                                Writeline(newsock,(void *)"ERROR:WHO\n",10);
+                            if(verbose) {
+                                fprintf(stderr,"Who are you?\n");
+                            }
+                            Writeline(newsock,(void *)"ERROR:WHO\n",10);
                         } else if(!identified && (!strcmp(p1,"NODENAME"))) {
                             strncpy(nodename,p2,strlen(p2)); // fix this min(strlen(p2),sizeof(nodename))
                             // If nodename not set, and I'm trying to set it then OK.
@@ -207,7 +204,7 @@ int main(int argc,char *argv[]) {
     while (1) {
         struct sockaddr_in their_addr;
         unsigned int size = sizeof(struct sockaddr_in);
-         int newsock = accept(sock, (struct sockaddr*)&their_addr, &size);
+        int newsock = accept(sock, (struct sockaddr*)&their_addr, &size);
         int pid;
 
         if (newsock == -1) {
